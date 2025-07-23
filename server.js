@@ -4,6 +4,9 @@ dotenv.config();
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+const errorHandler = require("./middleware/errorHandler");
+const colorsRoutes = require("./routes/colorsRoutes");
+const stockRoute = require("./routes/stockRoute");
 
 const app = express();
 
@@ -11,12 +14,17 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Welcome to the Paper Stock Management API");
-});
+app.use("/api/paper-stock", colorsRoutes, stockRoute);
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+});
+
+process.on("SIGINT", () => {
+  console.log("Shutting down server...");
+  process.exit();
 });
