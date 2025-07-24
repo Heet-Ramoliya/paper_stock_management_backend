@@ -99,7 +99,129 @@ const allStocks = (req, res) => {
   });
 };
 
+const removeStock = (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      message: "Stock ID is required",
+    });
+  }
+
+  const deleteQuery = `DELETE FROM stocks WHERE id = ?`;
+
+  db.run(deleteQuery, [id], function (err) {
+    if (err) {
+      console.error("Error deleting stock:", err.message);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to delete stock",
+        error: err.message,
+      });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Stock not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Stock deleted successfully",
+    });
+  });
+};
+
+const updateStock = (req, res) => {
+  const { id } = req.params;
+  const { color, size, GSM, bf, brand, newWeight, newPiece } = req.body;
+
+  if (!color || !size || !GSM || !bf || !brand || !newWeight || !newPiece) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "All fields are required. Please provide color, size, GSM, BF, brand, newWeight, and newPiece.",
+    });
+  }
+
+  const normalizedBrand =
+    brand.trim().charAt(0).toUpperCase() + brand.trim().slice(1).toLowerCase();
+
+  db.get(`SELECT weight, piece FROM stocks WHERE id = ?`, [id], (err, row) => {
+    if (err) {
+      console.error("Error fetching stock:", err.message);
+      return res.status(500).json({
+        success: false,
+        message:
+          "An error occurred while fetching stock data. Please try again.",
+      });
+    }
+
+    if (!row) {
+      console.warn(`Stock with ID ${id} not found.`);
+      return res.status(404).json({
+        success: false,
+        message: `No stock found with ID ${id}.`,
+      });
+    }
+
+    const currentWeight = parseFloat(row.weight);
+    const currentPiece = parseInt(row.piece);
+    const reduceWeight = parseFloat(newWeight);
+    const reducePiece = parseInt(newPiece);
+
+    const updatedWeight = currentWeight - reduceWeight;
+    const updatedPiece = currentPiece - reducePiece;
+
+    if (updatedWeight < 0 || updatedPiece < 0) {
+      return res.status(400).json({
+        success: false,
+        message: `You cannot remove more than available stock.`,
+      });
+    }
+
+    const updateQuery = `
+      UPDATE stocks
+      SET color = ?, size = ?, GSM = ?, bf = ?, weight = ?, brand = ?, piece = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `;
+
+    const values = [
+      color,
+      size,
+      GSM,
+      bf,
+      updatedWeight,
+      normalizedBrand,
+      updatedPiece,
+      id,
+    ];
+
+    db.run(updateQuery, values, function (updateErr) {
+      if (updateErr) {
+        console.error("Error updating stock:", updateErr.message);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to update the stock. Please try again later.",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: `Stock updated successfully`,
+        updatedWeight,
+        updatedPiece,
+      });
+    });
+  });
+};
+
 module.exports = {
   addStock,
   allStocks,
+  removeStock,
+  updateStock,
 };
