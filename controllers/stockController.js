@@ -219,9 +219,58 @@ const updateStock = (req, res) => {
   });
 };
 
+const groupStocksByColors = (req, res) => {
+  const query = `SELECT size, color, GSM, bf, brand, weight FROM stocks`;
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error("Error fetching stocks:", err.message);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch grouped stock data.",
+      });
+    }
+
+    const groupedData = {};
+
+    rows.forEach((row) => {
+      const sizeKey = row.size;
+      const colorKey = row.color.toLowerCase();
+
+      if (!groupedData[sizeKey]) {
+        groupedData[sizeKey] = {
+          size: sizeKey,
+          groups: {
+            natural: [],
+            golden: [],
+            white: [],
+          },
+        };
+      }
+
+      if (["natural", "golden", "white"].includes(colorKey)) {
+        groupedData[sizeKey].groups[colorKey].push({
+          gsm: row.GSM,
+          bf: row.bf,
+          weight: parseFloat(row.weight),
+          brand: row.brand,
+        });
+      }
+    });
+
+    const result = Object.values(groupedData);
+    res.status(200).json({
+      success: true,
+      message: "Grouped stock data fetched successfully.",
+      data: result,
+    });
+  });
+};
+
 module.exports = {
   addStock,
   allStocks,
   removeStock,
   updateStock,
+  groupStocksByColors,
 };
