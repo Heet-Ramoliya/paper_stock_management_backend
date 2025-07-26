@@ -220,7 +220,7 @@ const updateStock = (req, res) => {
 };
 
 const groupStocksByColors = (req, res) => {
-  const query = `SELECT size, color, GSM, bf, brand, weight FROM stocks`;
+  const query = `SELECT size, color, GSM, bf, brand, weight, piece FROM stocks`;
 
   db.all(query, [], (err, rows) => {
     if (err) {
@@ -254,6 +254,7 @@ const groupStocksByColors = (req, res) => {
           bf: row.bf,
           weight: parseFloat(row.weight),
           brand: row.brand,
+          piece: row.piece,
         });
       }
     });

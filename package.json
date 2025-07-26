@@ -15,7 +15,8 @@
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "morgan": "^1.10.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "yarn": "^1.22.22"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
