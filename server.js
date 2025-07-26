@@ -18,6 +18,16 @@ app.get("/", (req, res) =>
   res.send("Welcome to Paper Stock Management website")
 );
 
+app.get("/api/download-db", (req, res) => {
+  const dbPath = "/opt/render/project/src/paper_stock.sqlite";
+  res.download(dbPath, "paper_stock.sqlite", (err) => {
+    if (err) {
+      console.error("Error downloading database:", err.message);
+      res.status(500).send("Error downloading database");
+    }
+  });
+});
+
 app.use("/api/paper-stock", colorsRoutes, stockRoute);
 
 app.use(errorHandler);
