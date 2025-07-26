@@ -14,6 +14,10 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 
+app.get("/", (req, res) =>
+  res.send("Welcome to Paper Stock Management website")
+);
+
 app.use("/api/paper-stock", colorsRoutes, stockRoute);
 
 app.use(errorHandler);
